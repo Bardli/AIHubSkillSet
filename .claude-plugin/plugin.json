@@ -1,6 +1,6 @@
 {
   "name": "ai-hub-skill-set",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Medical-imaging dataset workflow skills: dataset-acquisition, dicom-converter, nnunet-converter. Progressive-disclosure SKILL.md files with mandatory MUST-read pointers, plus working helper scripts (DICOM auditor, SOP-UID map writer, multi-RTSTRUCT union parser, GDC manifest, HF revision-pinned downloader, simple nnUNet CLI, provenance manifest writer).",
   "author": {
     "name": "Bardli",

@@ -23,6 +23,37 @@ references are flagged with **MUST read** — those are non-negotiable.
 
 ---
 
+## STOP — Upstream Handshake With `dicom-converter`
+
+**If the input is raw DICOM, this skill is NOT the right entry point. Hand off to the `dicom-converter` skill first; come back here only after NIfTI / MHA / NRRD outputs exist.**
+
+Trigger conditions (any one of these → STOP and hand off):
+
+- The input directory contains files with extensions `.dcm`, `.DCM`, or `.IMA`.
+- A `DICOMDIR` file is present.
+- Filenames look like SOP Instance UIDs (long numeric dotted strings).
+- The user says "DICOM", "RTSTRUCT", "SEG", or names a clinical scan source without explicit NIfTI / MHA / NRRD / PNG / BMP / TIFF outputs.
+- You are tempted to write a DICOM parser, `pydicom`/`SimpleITK.ImageSeriesReader` call, or RTSTRUCT/SEG decoder anywhere in this conversion script.
+
+**Why this is non-negotiable.** `dicom-converter` runs a 10-check header-only audit (z-spacing uniformity, multi-acquisition under one SeriesUID, duplicate z, orientation, multi-RTSTRUCT, SOP-UID anchor coverage, FoR linkage, etc.) and routes RTSTRUCT contours / SEG frames by **SOP-UID**, not by z-coordinate geometry. Inlining a DICOM parser here bypasses every one of those checks and silently produces:
+
+- slice misalignment (off by N slices on non-uniform z),
+- cross-acquisition contour leakage when one SeriesUID has multiple `AcquisitionNumber` values,
+- 10× voxel undercount when annotation directories contain multiple RTSTRUCT files (measured: 13,929 vs 145,642 voxels on EAY131-8365856 acq2),
+- "outside-z-range" rejections that look unrelated to the real bug.
+
+These failures are **silent** — the script runs to completion, the NIfTI looks plausible, and nothing flags the missing or mis-routed voxels until you compare against ground truth. The nnUNet stage assumes correct NIfTI inputs; producing those is `dicom-converter`'s job.
+
+### How to hand off
+
+1. Tell the user explicitly: "this dataset is DICOM, switching to the `dicom-converter` skill to produce NIfTI before we format for nnUNet".
+2. Use `dicom-converter`'s workflow: audit (`scripts/audit_dicom_dataset.py`), build the SOP-UID map (`scripts/build_sop_to_acq.py`) if dirty, parse multi-RTSTRUCT directories (`scripts/parse_rtstruct_union.py`) when applicable, and write the NIfTI / MHA / NRRD outputs.
+3. Re-enter this skill **only** after the upstream stage produced files in a format from the table below.
+
+If the user insists on doing the DICOM step inside `nnunet-converter`, refuse and point at `dicom-converter`. The handshake exists because the failure modes are invisible without it.
+
+---
+
 ## Core Principle: Minimize Conversion
 
 nnUNet v2 supports multiple file formats natively via its `ReaderWriter` abstraction.
@@ -86,12 +117,14 @@ The five steps below are the canonical conversion flow. Each step lists the refe
 
 ### Step 1 — Understand the Input Dataset
 
-Before writing any code, determine:
+**FIRST CHECK — is the input DICOM?** If yes (any `.dcm` / `.DCM` / `.IMA` / `DICOMDIR` / RTSTRUCT / SEG present), STOP. Hand off to the `dicom-converter` skill per the upstream-handshake section above. Do not proceed past Step 1 until the upstream stage has emitted NIfTI / MHA / NRRD outputs. **You MUST NOT write DICOM-parsing code in this skill.**
+
+Once the input is confirmed to be a non-DICOM supported format, determine:
 
 1. **Source layout** — flat folders, per-subject folders, mixed, or class-folder 2D.
    → If layout is non-trivial or unfamiliar, you **MUST** read `references/input_layouts.md` before pairing images with labels.
 2. **Modalities / channels** — single, multi-modal, or RGB natural image.
-3. **File format** — already supported (keep), `.jpg` (convert to `.png`), or unsupported (convert to nearest supported).
+3. **File format** — already supported (keep), `.jpg` (convert to `.png`), or unsupported (convert to nearest supported). If you see `.dcm` here, return to the FIRST CHECK above — this skill does not parse DICOM.
 4. **Label values** — must be consecutive integers starting at 0, with 0 = background.
 5. **Train/test split** — pre-defined or all into `imagesTr`?
 6. **Dataset ID and CamelCase name** — 3-digit ID. IDs 001–010 are reserved for the Medical Segmentation Decathlon.
@@ -211,6 +244,7 @@ When the situation matches the **left** column, the rule on the **right** is man
 
 | Situation | Action |
 |---|---|
+| **Input is raw DICOM (.dcm / DICOMDIR / RTSTRUCT / SEG)** | **STOP. Hand off to the `dicom-converter` skill** per the upstream-handshake section above. Do **NOT** parse DICOM in this skill. Re-enter only after NIfTI/MHA/NRRD outputs exist. |
 | 2D images (PNG / BMP / TIFF including RGB) | **MUST** read `references/2d_images.md` before writing conversion code. |
 | 3D TIFF stacks (Tiff3DIO, multi-frame TIFF) | **MUST** read `references/3d_tiff.md` before writing conversion code. |
 | Multi-modal MRI / different resolutions per modality | **MUST** read `references/multi_modal.md` before writing conversion code. |

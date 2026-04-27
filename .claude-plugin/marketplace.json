@@ -12,7 +12,7 @@
       "name": "ai-hub-skill-set",
       "source": "./",
       "description": "Three composable skills for medical-imaging dataset work — dataset-acquisition (TCGA/GDC, Kaggle, HuggingFace, Google Drive + sbatch), dicom-converter (DICOM→NIfTI, RTSTRUCT/SEG SOP-UID routing, audit + helper scripts), nnunet-converter (nnUNet v2 formatting for all native formats including 2D, 3D, multi-modal, classification, region-based)",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Bardli",
         "email": "bardli2001@gmail.com"
