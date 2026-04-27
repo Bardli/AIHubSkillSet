@@ -65,11 +65,11 @@ cp -r AIHubSkillSet/{nnunet-converter,dicom-converter,dataset-acquisition} ~/.cl
 
 ## Design notes
 
-- **Progressive disclosure.** `nnunet-converter` and `dataset-acquisition`
-  use a compact `SKILL.md` entry point that loads detailed `references/*.md`
-  on demand, with mandatory **MUST read** pointers for the references the
-  model has to consult before writing code or commands. This keeps the
-  always-loaded context small while preserving the depth of each topic.
+- **Progressive disclosure.** All three skills use a compact `SKILL.md`
+  entry point that loads detailed `references/*.md` on demand, with
+  mandatory **MUST read** pointers for the references the model has to
+  consult before writing code or commands. This keeps the always-loaded
+  context small while preserving the depth of each topic.
 - **Strict scoping between skills.** Each skill stays in its lane and points
   at the others when a request crosses boundaries (e.g. `dataset-acquisition`
   refuses to do DICOM→NIfTI; it tells you to use `dicom-converter`).
