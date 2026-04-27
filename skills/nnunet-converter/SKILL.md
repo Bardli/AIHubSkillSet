@@ -1,14 +1,13 @@
 ---
 name: nnunet-converter
 description: >
-  Convert medical imaging datasets into nnUNet v2 format. Supports all nnUNet-native
-  formats: NIfTI (.nii.gz), MHA (.mha), NRRD (.nrrd), PNG (.png), BMP (.bmp), TIFF (.tif).
-  Use this skill whenever the user mentions nnUNet, nnU-Net, dataset conversion for
-  segmentation training, preparing data for nnUNet, organizing imagesTr/labelsTr folders,
-  generating dataset.json, or structuring medical images for nnUNet preprocessing.
-  Trigger even if the user just says "convert my dataset to nnUNet" or "prepare my
-  segmentation data for nnUNet training". Also handles classification labels (cls_data.csv)
-  and classification_labels in dataset.json.
+  Use when the user asks to convert, prepare, or organize a medical imaging dataset
+  for nnUNet v2 / nnU-Net training, structure imagesTr/labelsTr folders, write
+  dataset.json, generate splits_final.json, or set up classification labels
+  (cls_data.csv). Triggers on the strings nnUNet, nnU-Net, imagesTr, labelsTr,
+  dataset.json, splits_final.json, classification_labels, NaturalImage2DIO,
+  NibabelIO, SimpleITKIO, Tiff3DIO. Inputs may be NIfTI / MHA / NRRD / PNG / BMP /
+  TIFF; raw DICOM inputs must hand off to the dicom-converter skill first.
 ---
 
 # nnUNet v2 Dataset Converter Skill

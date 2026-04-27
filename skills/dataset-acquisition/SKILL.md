@@ -1,16 +1,14 @@
 ---
 name: dataset-acquisition
 description: >
-  Download medical imaging and genomics datasets from common public sources and
-  generate the right command lines or sbatch scripts for them. Use this skill
-  whenever the user wants to pull data from TCGA / GDC, Kaggle (competitions or
-  datasets), HuggingFace, or Google Drive, or asks for an sbatch template for a
-  long-running download. Triggers on phrases like "grab the CESC slides",
-  "download the BraTS dataset from HuggingFace", "pull the RSNA pneumonia
-  competition from Kaggle", "generate a GDC manifest", "download from gdrive",
-  "write me an sbatch script for this dataset". Does NOT cover DICOM→NIfTI
-  conversion or nnUNet formatting — those live in the dicom-converter and
-  nnunet-converter skills respectively.
+  Use when the user wants to pull a dataset from TCGA / GDC, Kaggle (competition
+  or dataset), HuggingFace, or Google Drive, or asks for an sbatch script for a
+  long download. Triggers on phrases like "grab the CESC slides", "download
+  BraTS from huggingface", "pull RSNA pneumonia from kaggle", "GDC manifest",
+  "gdown", "sbatch for this download", and on the tools gdc-client, kaggle,
+  huggingface_hub, snapshot_download, gdown. Does NOT cover DICOM→NIfTI
+  conversion or nnUNet formatting — hand off to the dicom-converter or
+  nnunet-converter skill.
 ---
 
 # Dataset Acquisition Skill

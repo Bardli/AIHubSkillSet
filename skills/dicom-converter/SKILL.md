@@ -64,7 +64,7 @@ python scripts/build_sop_to_acq.py --series /path/to/ct_dir \
     --filter-localizer --out sop_to_acq.json
 ```
 
-Build the map from the **full** per-acquisition file list. Never prune it during z-dedup — that re-introduces the silent leakage bug patched 2026-04-26. See the warnings in `references/image_stack_traps.md`.
+Build the map from the **full** per-acquisition file list. Never prune it during z-dedup — that re-introduces silent contour leakage in z-overlap series. See the warnings in `references/image_stack_traps.md`.
 
 ### Step 3 — Convert images
 
