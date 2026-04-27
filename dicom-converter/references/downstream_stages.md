@@ -2,7 +2,24 @@
 
 After Stage 1 (DICOM → NIfTI) is correct, downstream packing and inference are mostly mechanical. This reference collects the gotchas that have actually bitten in production.
 
-## Stage 2 — NIfTI → NPZ
+## When you do NOT need this reference
+
+**Stage 2 (NIfTI → NPZ) is OPTIONAL.** Skip it entirely if your downstream tool consumes NIfTI directly:
+
+| Downstream tool | Format it consumes | Need Stage 2? |
+|---|---|---|
+| nnUNet v2 | `.nii.gz` (or `.mha`, `.nrrd`, `.png`, `.tif` per the format spec) | NO — see the `nnunet-converter` skill |
+| MONAI | `.nii.gz` | NO |
+| Most research / inference code | `.nii.gz` | NO |
+| Custom training pipeline you control | (your call) | usually NO |
+| MedSAM2 / EfficientMedSAM2 | NPZ bundle (uint8 image + instance labels + spacing/direction/origin) | YES |
+| Most CVPR / MICCAI competition Docker images | NPZ | YES |
+
+If your tool takes `.nii.gz`, stop after Stage 1. Packing to NPZ "for safety" is lossy — uint8 windowing throws away ~12 bits of CT dynamic range — and introduces a failure surface (wrong window = invisible lesions). Don't do it unless you have to.
+
+Stage 3 (Docker GPU fix) is also only relevant if you are running a competition Docker image. If you're not, skip it.
+
+## Stage 2 — NIfTI → NPZ (only if a downstream consumer requires it)
 
 ### CT windowing per body part
 
@@ -51,7 +68,7 @@ np.savez_compressed(
 - Storing `spacing` as `(z, y, x)` instead of `(x, y, z)` — most downstream consumers assume `(x, y, z)`. Stick with one convention and document it.
 - Saving `imgs` as `float32` instead of `uint8` — bloats the NPZ and breaks downstream tooling that expects uint8.
 
-## Stage 3 — Inference
+## Stage 3 — Inference (only if running a competition Docker image)
 
 ### Docker GPU fix (ALL competition images)
 

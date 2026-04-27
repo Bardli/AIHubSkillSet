@@ -18,10 +18,14 @@ This SKILL.md is intentionally compact. Detailed guidance lives in `references/*
 
 ```
 DICOM (raw)
-  │  Stage 1: DICOM → NIfTI (HARD — metadata traps)
+  │  Stage 1: DICOM → NIfTI (HARD — metadata traps; this skill's core)
   ▼
-NIfTI (image + label pairs)
-  │  Stage 2: NIfTI → NPZ (EASY — but windowing matters)
+NIfTI (image + label pairs)  ◀── valid stopping point for most use cases
+  │
+  │  Stage 2 (OPTIONAL): NIfTI → NPZ
+  │    Only needed when the downstream consumer expects NPZ
+  │    (MedSAM2, EfficientMedSAM2, some competition Docker images).
+  │    nnUNet, MONAI, most research code consume NIfTI directly — skip Stage 2.
   ▼
 NPZ (uint8 image + instance labels + RECIST prompts)
   │  Stage 3: Inference (model-specific)
@@ -29,7 +33,7 @@ NPZ (uint8 image + instance labels + RECIST prompts)
 Predictions → Evaluation (DSC, visualization)
 ```
 
-The hard part is Stage 1. Stages 2 and 3 are mechanical — see `references/downstream_stages.md` when you need them.
+The hard part is Stage 1. **Stage 2 is optional** — only do it if the downstream tool actually requires NPZ. If you're handing off to nnUNet, MONAI, or anything that takes `.nii.gz` directly, stop after Stage 1. Stages 2 and 3 are mechanical when you do need them — see `references/downstream_stages.md`.
 
 ---
 
@@ -81,9 +85,12 @@ Pick the right approach based on the annotation type:
 
 If anything looks off (mask "shifted by a couple slices", wrong tissue HU, image-mask shape mismatch), you **MUST** read `references/debugging_misalignment.md`. The five checks there (HU at label, z-spacing recheck, multi-acq, multi-RTSTRUCT, `SliceThickness` vs reality) cover the vast majority of real failures.
 
-### Step 6 — Downstream packing and inference
+### Step 6 — Downstream packing and inference (OPTIONAL)
 
-When packing to NPZ for MedSAM2-style inference or running competition Docker images, you **MUST** read `references/downstream_stages.md` — body-part-specific CT windowing and the universal Docker GPU fix are both in there. Wrong windowing destroys contrast; the GPU fix is the difference between minutes and hours per case.
+Skip this step entirely unless the downstream consumer requires NPZ or you are about to run a competition Docker image.
+
+- **Going to nnUNet, MONAI, or anything that loads `.nii.gz` directly?** You're done after Step 5. Do not pack to NPZ "for safety" — it's lossy (uint8 windowing) and adds a failure surface. See the `nnunet-converter` sibling skill for nnUNet v2 formatting.
+- **Going to MedSAM2 / EfficientMedSAM2 / a competition Docker image?** You **MUST** read `references/downstream_stages.md` — body-part-specific CT windowing and the universal Docker GPU fix are both in there. Wrong windowing destroys contrast; the GPU fix is the difference between minutes and hours per case.
 
 ### Step 7 — Visual QC
 
@@ -101,7 +108,7 @@ For per-case overlay PNGs, AI-assisted visual review with Claude Code, side-by-s
 | Multi-acquisition, duplicate z, non-uniform z, non-axial orientation | **MUST** read `references/image_stack_traps.md`. |
 | Decoding a DICOM SEG file | **MUST** read `references/seg_decoding.md`. |
 | Labels look shifted, HU wrong at label voxels, shape mismatch | **MUST** read `references/debugging_misalignment.md`. |
-| Packing NIfTI → NPZ for inference, Docker GPU fix | **MUST** read `references/downstream_stages.md`. |
+| Packing NIfTI → NPZ for MedSAM2-style inference, Docker GPU fix (OPTIONAL — skip for nnUNet / MONAI / `.nii.gz` consumers) | **MUST** read `references/downstream_stages.md`. |
 | Visual QC, per-case videos, AI-assisted review | **MUST** read `references/visualization_qc.md`. |
 | EAY131 benchmark — evaluator, traps, key paths, naming, discipline | **MUST** read `references/eay131_benchmark.md`. |
 
