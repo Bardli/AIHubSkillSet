@@ -1,0 +1,28 @@
+{
+  "name": "ai-hub-skill-set",
+  "version": "0.1.0",
+  "description": "Medical-imaging dataset workflow skills: dataset-acquisition, dicom-converter, nnunet-converter. Progressive-disclosure SKILL.md files with mandatory MUST-read pointers, plus working helper scripts (DICOM auditor, SOP-UID map writer, multi-RTSTRUCT union parser, GDC manifest, HF revision-pinned downloader, simple nnUNet CLI, provenance manifest writer).",
+  "author": {
+    "name": "Bardli",
+    "email": "bardli2001@gmail.com",
+    "url": "https://github.com/Bardli"
+  },
+  "homepage": "https://github.com/Bardli/AIHubSkillSet",
+  "repository": "https://github.com/Bardli/AIHubSkillSet",
+  "license": "MIT",
+  "keywords": [
+    "medical-imaging",
+    "dicom",
+    "nifti",
+    "rtstruct",
+    "seg",
+    "sop-uid",
+    "nnunet",
+    "tcga",
+    "kaggle",
+    "huggingface",
+    "skills",
+    "claude-code"
+  ],
+  "skills": ["./skills/"]
+}
