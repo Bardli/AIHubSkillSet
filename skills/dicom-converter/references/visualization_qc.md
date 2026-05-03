@@ -93,6 +93,25 @@ claude --model claude-opus-4-7 --effort max \
 
 ## Per-case review video (left CT, right CT+GT overlay)
 
+For converted nnU-Net-style datasets, prefer the bundled helper:
+
+```bash
+python scripts/make_overlay_qc_videos.py \
+    --dataset-dir /path/to/nnUNet_raw/Dataset123_Name \
+    --output-dir /path/to/qc_videos \
+    --num-samples 5 \
+    --seed 42
+```
+
+The helper reads 3D SimpleITK-readable volumes (`.nii.gz`, `.mha`, `.nrrd`) from
+`imagesTr/*_0000` and `labelsTr/*` by default, writes one MP4 per sampled case,
+and uses robust percentile normalization unless CT windowing is explicitly
+requested with `--modality CT --window-level ... --window-width ...`.
+For multi-modal datasets, render another channel with `--channel 1`, `--channel
+2`, etc. For a recovered failed case, render it separately with `--case-id
+<case_id>`; do not rely on the random sample to catch it. Use `--num-samples` to
+increase or reduce the random baseline sample count.
+
 ```python
 PANEL = 384; HEADER_H = 40; FPS = 15; ALPHA = 0.45
 # For each slice z:

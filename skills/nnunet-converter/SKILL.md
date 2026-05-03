@@ -116,6 +116,13 @@ The five steps below are the canonical conversion flow. Each step lists the refe
 
 ### Step 1 — Understand the Input Dataset
 
+**Archive inventory first.** If the input came from a zip/tar/7z archive or an
+already-extracted archive folder, list the full archive contents or extracted
+folder tree before choosing the input folder. Inspect every candidate folder,
+including names such as `_preprocessed`, `preprocessed`, `processed`, and
+`derived`; "prefer least processed data" does not mean skipping processed-looking
+folders before you know what they contain.
+
 **FIRST CHECK — is the input DICOM?** If yes (any `.dcm` / `.DCM` / `.IMA` / `DICOMDIR` / RTSTRUCT / SEG present), STOP. Hand off to the `dicom-converter` skill per the upstream-handshake section above. Do not proceed past Step 1 until the upstream stage has emitted NIfTI / MHA / NRRD outputs. **You MUST NOT write DICOM-parsing code in this skill.**
 
 Once the input is confirmed to be a non-DICOM supported format, determine:
@@ -205,6 +212,11 @@ ls labelsTr/ | head -5
 nnUNetv2_plan_and_preprocess -d {ID} --verify_dataset_integrity
 ```
 
+Recommended visual QC after conversion: use the sibling `dicom-converter`
+overlay-video helper documented in `dicom-converter/references/visualization_qc.md`
+to generate a small random sample of image+label videos. This is recommended for
+routine conversions and mandatory for any recovered failed case.
+
 ### Step 5 — Update Conversion Notes (MANDATORY)
 
 After every successful conversion you **MUST** read `references/conversion_notes_template.md` and append a fully-populated entry to `conversion_notes.md` in the `nnUNet_raw/` directory. This step is **non-negotiable** — it is the only durable record of source paths, dropped files, label mapping, and licence.
@@ -243,6 +255,7 @@ When the situation matches the **left** column, the rule on the **right** is man
 
 | Situation | Action |
 |---|---|
+| Input came from an archive or extracted archive folder | List all archive/extracted-folder contents before choosing the input folder; do this before the DICOM handoff check. |
 | **Input is raw DICOM (.dcm / DICOMDIR / RTSTRUCT / SEG)** | **STOP. Hand off to the `dicom-converter` skill** per the upstream-handshake section above. Do **NOT** parse DICOM in this skill. Re-enter only after NIfTI/MHA/NRRD outputs exist. |
 | 2D images (PNG / BMP / TIFF including RGB) | **MUST** read `references/2d_images.md` before writing conversion code. |
 | 3D TIFF stacks (Tiff3DIO, multi-frame TIFF) | **MUST** read `references/3d_tiff.md` before writing conversion code. |
@@ -253,6 +266,7 @@ When the situation matches the **left** column, the rule on the **right** is man
 | Writing or editing `dataset.json` | **MUST** read `references/dataset_json_spec.md` before writing JSON. |
 | **Step 5 — Conversion notes (every conversion)** | **MUST** read `references/conversion_notes_template.md` and append the fully-populated entry. |
 | Generating `splits_final.json` or the optional `_manifest.json` | **MUST** read `references/splits_and_provenance.md` before generating either file. |
+| Post-conversion visual QC or recovered failed-case review | Use `dicom-converter/scripts/make_overlay_qc_videos.py` as documented in `dicom-converter/references/visualization_qc.md`. |
 | MSD / nnU-Net v1 migration, env vars, inference, custom splits | **MUST** read `references/migration_and_inference.md`. |
 
 ---
