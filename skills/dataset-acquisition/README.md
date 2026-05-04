@@ -12,9 +12,9 @@ Sources covered: TCGA / GDC, Kaggle (competitions and datasets), HuggingFace
 This skill is **only** about acquisition. Two related preprocessing concerns
 have their own skills:
 
-- **DICOM → NIfTI conversion** — use the `dicom-converter` skill.
+- **DICOM → NIfTI conversion** — use the sibling [`dicom-converter`](../dicom-converter/) skill.
 - **nnUNet v2 dataset formatting (`imagesTr/labelsTr/dataset.json`)** — use
-  the `nnunet-converter` skill (<https://github.com/Bardli/nnunet-converter-skill>).
+  the sibling [`nnunet-converter`](../nnunet-converter/) skill.
 
 If a user asks for download + nnUNet formatting in one go, this skill produces
 the download artifacts; hand off to `nnunet-converter` for the formatting.
@@ -26,10 +26,11 @@ mkdir -p .claude/skills
 cp -r dataset-acquisition .claude/skills/dataset-acquisition
 ```
 
-Or clone directly into the skills directory:
+Or clone the parent [AIHubSkillSet](https://github.com/Bardli/AIHubSkillSet) repo and copy the skill out:
 
 ```bash
-git clone <repo-url> .claude/skills/dataset-acquisition
+git clone https://github.com/Bardli/AIHubSkillSet.git
+cp -r AIHubSkillSet/skills/dataset-acquisition .claude/skills/dataset-acquisition
 ```
 
 ## Usage

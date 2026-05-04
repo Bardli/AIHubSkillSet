@@ -33,11 +33,12 @@ mkdir -p .claude/skills
 cp -r nnunet-converter .claude/skills/nnunet-converter
 ```
 
-Or clone directly:
+Or clone the parent [AIHubSkillSet](https://github.com/Bardli/AIHubSkillSet) repo and copy the skill out:
 
 ```bash
+git clone https://github.com/Bardli/AIHubSkillSet.git
 mkdir -p .claude/skills
-git clone https://github.com/Bardli/nnunet-converter-skill.git .claude/skills/nnunet-converter
+cp -r AIHubSkillSet/skills/nnunet-converter .claude/skills/nnunet-converter
 ```
 
 ## Usage
@@ -79,8 +80,16 @@ nnunet-converter/
 
 `make_nnunet_dataset_simple.py` and `write_manifest.py` are adapted from
 [ryanwangk/medimg_skills](https://github.com/ryanwangk/medimg_skills) under MIT.
-Dataset acquisition (TCGA/GDC, Kaggle, HuggingFace, Google Drive, sbatch templates) is
-intentionally out of scope for this skill — see the sibling `dataset-acquisition` skill.
+
+## Sibling skills (out of scope here)
+
+This skill is **only** about nnUNet v2 formatting. Two related concerns
+have their own skills in this set:
+
+- **Acquiring data from public sources** (TCGA/GDC, Kaggle, HuggingFace,
+  Google Drive, sbatch templates) — use the sibling [`dataset-acquisition`](../dataset-acquisition/) skill.
+- **DICOM → NIfTI conversion** (RTSTRUCT/SEG handling, multi-acquisition
+  routing, audit) — use the sibling [`dicom-converter`](../dicom-converter/) skill.
 
 ## Requirements
 
