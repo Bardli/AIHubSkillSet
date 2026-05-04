@@ -41,6 +41,12 @@ The hard part is Stage 1. **Stage 2 is optional** — only do it if the downstre
 
 ### Step 1 — Audit the dataset (always)
 
+If the input came from an archive, first list the full archive contents or the
+full extracted-folder tree before choosing the DICOM directory. Inspect every
+candidate folder, including `_preprocessed`, `preprocessed`, `processed`,
+`derived`, and similarly named folders. Do not skip a folder just because its
+name looks more processed.
+
 You **MUST** read `references/audit_checklist.md` and run `scripts/audit_dicom_dataset.py` before deciding which converter to run. The auditor checks 10 cleanliness conditions header-only and exits `0` clean / `1` dirty. Use it to gate every new dataset.
 
 ```bash
@@ -85,6 +91,23 @@ Pick the right approach based on the annotation type:
 
 If anything looks off (mask "shifted by a couple slices", wrong tissue HU, image-mask shape mismatch), you **MUST** read `references/debugging_misalignment.md`. The five checks there (HU at label, z-spacing recheck, multi-acq, multi-RTSTRUCT, `SliceThickness` vs reality) cover the vast majority of real failures.
 
+### Step 5b — Diagnose failed or skipped cases
+
+If conversion succeeds for only part of a cohort, do not declare the failed
+cases unrecoverable until you diagnose them. You **MUST** read
+`references/debugging_misalignment.md` and work the failed-case recovery section.
+SOP-UID routing remains the primary path; when a SOP UID is missing, mismatched,
+or not found in the image stack, recovery checks FrameOfReferenceUID,
+z-position alignment, spacing consistency, and world-coordinate agreement before
+giving up.
+
+If more than 5 cases fail, create `failed_cases.csv` manually from
+case-attributable converter logs with at least `case_id`, `source_path`,
+`failure_stage`, `error_or_reason`, and `diagnosis_status`. If 5 or fewer cases
+fail, manual diagnosis directly from logs is acceptable. If a converter does not
+identify the failed case ID or source path, improve that converter's logging
+before guessing which data failed.
+
 ### Step 6 — Downstream packing and inference (OPTIONAL)
 
 Skip this step entirely unless the downstream consumer requires NPZ or you are about to run a competition Docker image.
@@ -96,6 +119,10 @@ Skip this step entirely unless the downstream consumer requires NPZ or you are a
 
 For per-case overlay PNGs, AI-assisted visual review with Claude Code, side-by-side comparisons, or grid videos, you **MUST** read `references/visualization_qc.md`. Includes the `best_slice = argmax(GT ∪ Pred)` rule (using `argmax(Pred)` alone produces empty-GT panels and misleads the reviewer).
 
+For nnU-Net-style `imagesTr` / `labelsTr` outputs, use
+`scripts/make_overlay_qc_videos.py` to generate random baseline overlay videos
+and separate videos for any recovered failed cases.
+
 ---
 
 ## Pointer reference table
@@ -103,11 +130,13 @@ For per-case overlay PNGs, AI-assisted visual review with Claude Code, side-by-s
 | Situation | Action |
 |---|---|
 | Any new dataset (always run first) | **MUST** read `references/audit_checklist.md` and run `scripts/audit_dicom_dataset.py`. |
+| Input came from an archive or extracted archive folder | List all archive/extracted-folder contents before choosing the DICOM directory. |
 | Writing any rasterizer (RTSTRUCT or SEG) | **MUST** read `references/sop_uid_routing.md`. Build `sop_to_acq.json` via `scripts/build_sop_to_acq.py`. |
 | Annotation directory has more than one RTSTRUCT `.dcm` | **MUST** read `references/multi_rtstruct.md`. Use `scripts/parse_rtstruct_union.py`. |
 | Multi-acquisition, duplicate z, non-uniform z, non-axial orientation | **MUST** read `references/image_stack_traps.md`. |
 | Decoding a DICOM SEG file | **MUST** read `references/seg_decoding.md`. |
 | Labels look shifted, HU wrong at label voxels, shape mismatch | **MUST** read `references/debugging_misalignment.md`. |
+| Converter failed or skipped one or more cases | **MUST** read `references/debugging_misalignment.md` and diagnose failed cases before declaring them unrecoverable. |
 | Packing NIfTI → NPZ for MedSAM2-style inference, Docker GPU fix (OPTIONAL — skip for nnUNet / MONAI / `.nii.gz` consumers) | **MUST** read `references/downstream_stages.md`. |
 | Visual QC, per-case videos, AI-assisted review | **MUST** read `references/visualization_qc.md`. |
 | EAY131 benchmark — evaluator, traps, key paths, naming, discipline | **MUST** read `references/eay131_benchmark.md`. |
@@ -132,5 +161,6 @@ dicom-converter/
 └── scripts/
     ├── audit_dicom_dataset.py                # 10-check header-only auditor (exits 0/1)
     ├── build_sop_to_acq.py                   # SOP-UID → AcquisitionNumber map writer
-    └── parse_rtstruct_union.py               # Multi-RTSTRUCT OR-union with SOP-UID anchors
+    ├── parse_rtstruct_union.py               # Multi-RTSTRUCT OR-union with SOP-UID anchors
+    └── make_overlay_qc_videos.py             # nnU-Net-style image+label overlay MP4 QC
 ```

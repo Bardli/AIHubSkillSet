@@ -86,6 +86,49 @@ print(f"SliceThickness tag: {spacing_from_tag} mm  vs IPP-derived median: {spaci
 
 If they disagree by more than 0.5 mm, the tag is wrong. Use the IPP-derived value everywhere.
 
+## Failed conversion recovery
+
+Use this when a converter completed only part of a cohort, skipped cases, or
+raised per-case errors. A failed RTSTRUCT/SEG case is not automatically
+unrecoverable just because the SOP UID path failed. SOP UID is still the primary
+route; recovery starts when a SOP UID is missing, mismatched, or absent from the
+available image stack.
+
+For 5 or fewer failed cases, diagnose them directly from case-attributable
+converter logs. For more than 5 failed cases, create `failed_cases.csv` manually
+from those logs with at least:
+
+```csv
+case_id,source_path,failure_stage,error_or_reason,diagnosis_status
+```
+
+If the logs do not identify the failed case ID or source path, fix the converter
+logging before guessing which case failed.
+
+Work each failed case through this fallback chain before giving up:
+
+1. **Confirm the primary failure.** Record whether the referenced SOP UID is
+   missing from the image stack, mismatched to the available images, or absent in
+   the annotation metadata.
+2. **Check FrameOfReferenceUID.** If the annotation and candidate image stack
+   share a FrameOfReferenceUID, the geometry may still be recoverable. If FoR
+   conflicts, look for a different image stack before rasterizing.
+3. **Check z-position alignment.** Compare contour/frame z positions with the
+   candidate image stack's `ImagePositionPatient` z values. Matching or
+   nearest-neighbour-consistent z positions are evidence for recovery.
+4. **Check spacing consistency.** Recompute z spacing from IPP differences; do
+   not trust `SliceThickness`. If the annotation z positions land on the same
+   physical grid, a SOP UID mismatch alone is not fatal.
+5. **Check world-coordinate consistency.** Transform contour points into the
+   candidate image grid and confirm they land inside plausible image bounds and
+   on plausible anatomy. A non-empty mask in the correct tissue region is a
+   recovery candidate; an out-of-bounds or anatomically impossible mask is not.
+
+After a recovered case is accepted, generate a separate overlay QC video for it
+using `scripts/make_overlay_qc_videos.py` as described in
+`visualization_qc.md`. Do not mix recovered-case review into the random baseline
+sample.
+
 ## Common mistakes (summary)
 
 | Mistake | Consequence | Fix |

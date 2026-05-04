@@ -55,6 +55,14 @@ single-source; some are "grab data from X then preprocess with Y" — handle the
 acquisition part here and hand off to the appropriate sibling skill for the
 preprocessing.
 
+**Archive inventory rule.** For any archive you download, receive, or unpack
+(`.zip`, `.tar`, `.tar.gz`, `.tgz`, `.7z`, etc.), list the full archive contents
+or extracted folder tree before choosing the downstream conversion input. Inspect
+every candidate folder, including names that look processed (`_preprocessed`,
+`preprocessed`, `processed`, `derived`, etc.). "Prefer least processed data" does
+not mean ignoring processed-looking folders; inspect everything first, then pick
+the correct source for `dicom-converter` or `nnunet-converter`.
+
 ### Step 2 — Verify prerequisites BEFORE running anything
 
 For each source, you **MUST** read the corresponding reference and confirm
@@ -128,6 +136,7 @@ in the per-source references.
 | Pulling a HuggingFace dataset or model, gated repos, revision pinning | **MUST** read `references/huggingface.md`. |
 | Pulling from Google Drive via `gdown` | **MUST** read `references/google_drive.md`. |
 | Generating an sbatch script for any download | **MUST** read `references/sbatch_template.md`. |
+| Any downloaded, user-provided, or extracted archive | List the full archive or extracted-folder contents before choosing the downstream conversion input. |
 | Preprocessing the downloaded data | Hand off to `dicom-converter` (DICOM→NIfTI) or `nnunet-converter` (nnUNet formatting). |
 
 ---
